@@ -35,19 +35,15 @@ def index():
 def generate_timestamp_filename(filename):
     timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
     # 将时间戳和原始文件名结合起来
-    return f"{timestamp}_{filename}"
-
-def clean_filename(filename):
-    # 清理文件名，去除不必要的特殊字符
-    return re.sub(r'[^\w\s.-]', '_', filename).strip()
+    filename_trimmed = filename[:10]
+    return f"{timestamp}_{filename_trimmed}"
 
 @app.route('/upload', methods=['POST'])
 def upload():
     file = request.files.get('file')
     if file and file.filename:
         # 生成带有时间戳的文件名
-        cleaned_filename = clean_filename(file.filename)
-        timestamped_filename = generate_timestamp_filename(cleaned_filename)
+        timestamped_filename = generate_timestamp_filename(file.filename)
         
         # 保存文件
         file.save(timestamped_filename)
