@@ -1,0 +1,13 @@
+{
+  "build": {
+    "env": {
+      "PYTHONUNBUFFERED": "1"
+    }
+  },
+  "start": {
+    "cmd": "python app.py",
+    "env": {
+      "PORT": "8000"
+    }
+  }
+}
