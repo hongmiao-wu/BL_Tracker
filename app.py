@@ -1,8 +1,8 @@
 from utils import get_carrier_from_bl
 from scraper import getContainerNoFromPDF, msc, evergreen
-
+from urllib.parse import quote
 from flask import Flask, render_template, request, send_file
-
+import datetime
 
 app = Flask(__name__)
 
@@ -30,25 +30,36 @@ def index():
     
     return render_template("index.html")
 
+# 获取当前时间的时间戳，格式为：YYYYMMDD_HHMMSS
+def generate_timestamp_filename(filename):
+    timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+    # 将时间戳和原始文件名结合起来
+    return f"{timestamp}_{filename}"
+
 @app.route('/upload', methods=['POST'])
 def upload():
     file = request.files.get('file')
     if file and file.filename:
-        file.save(file.filename)
+        # 生成带有时间戳的文件名
+        timestamped_filename = generate_timestamp_filename(file.filename)
+        
+        # 保存文件
+        file.save(timestamped_filename)
         try:
-            container_numbers = getContainerNoFromPDF.extract_container_numbers_from_pdf(file.filename)
+            container_numbers = getContainerNoFromPDF.extract_container_numbers_from_pdf(timestamped_filename)
             if container_numbers:
-                with open(f"{file.filename}-container_info.txt", "w", encoding="utf-8") as f:
-                    f.write(f"BL NO: {file.filename}\n")
+                txt_filename = f"{timestamped_filename}-container_info.txt"
+                with open(txt_filename, "w", encoding="utf-8") as f:
+                    f.write(f"BL NO: {timestamped_filename}\n")
                     f.write("CTNR:\n")
                     for number in container_numbers:
                         f.write(f"{number}\n")
 
-                #return send_file(f"{file.filename}-container_info.txt", as_attachment=True)
+                # 返回包含时间戳的文件名
                 return send_file(
-                    f"{file.filename}-container_info.txt",
+                    txt_filename,
                     as_attachment=True,
-                    download_name=f"{file.filename}-container_info.txt",  # Flask ≥2.0
+                    download_name=quote(txt_filename),  # URL 编码文件名
                     mimetype="text/plain"
                 )
             else:
@@ -57,11 +68,4 @@ def upload():
             return f"解析 PDF 时出错：{str(e)}"
     return "未接收到文件"
 
-
-if __name__ == "__main__":
-    import os
-    # Render
-    # port = int(os.environ.get("PORT", 5000))
-    # Railway
-    port = int(os.environ.get("PORT", 8000))
-    app.run(host="0.0.0.0", port=port)
+app.run(debug=True)
