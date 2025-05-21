@@ -3,6 +3,7 @@ from scraper import getContainerNoFromPDF, msc, evergreen
 from urllib.parse import quote
 from flask import Flask, render_template, request, send_file
 import datetime
+import os
 
 app = Flask(__name__)
 
@@ -68,4 +69,5 @@ def upload():
             return f"解析 PDF 时出错：{str(e)}"
     return "未接收到文件"
 
-app.run(debug=True)
+port = int(os.environ.get("PORT", 5000))
+app.run(host="0.0.0.0", port=port)
