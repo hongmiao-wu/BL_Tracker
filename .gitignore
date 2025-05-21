@@ -1,0 +1,49 @@
+# Python 缓存
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.pyc
+
+# 虚拟环境（本地创建的）
+venv/
+env/
+
+# VS Code 或其他编辑器设置
+.vscode/
+.idea/
+
+# 操作系统文件
+.DS_Store
+Thumbs.db
+
+# 环境配置
+*.env
+.env.*
+
+# 日志文件
+*.log
+
+# Flask/Security
+instance/
+*.sqlite3
+*.db
+*.bak
+
+# Pytest 缓存
+.pytest_cache/
+.cache/
+
+# Build
+build/
+dist/
+*.egg-info/
+.eggs/
+
+# Docker 相关（如果使用 Docker）
+*.tar
+*.img
+*.container
+
+# Render 和部署相关（如果你手动构建临时文件）
+render-build/

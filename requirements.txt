@@ -1,0 +1,4 @@
+flask=2.3.3
+requests
+beautifulsoup4
+pymupdf
