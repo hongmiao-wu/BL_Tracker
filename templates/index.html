@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <title>抓取集装箱号小程序</title>
+    <style>
+        #drop-zone {
+            width: 100%;
+            max-width: 400px;
+            height: 150px;
+            border: 2px dashed #ccc;
+            border-radius: 10px;
+            text-align: center;
+            line-height: 150px;
+            color: #888;
+            margin-top: 20px;
+            cursor: pointer;
+        }
+
+        #drop-zone.dragover {
+            border-color: #666;
+            background-color: #f0f0f0;
+            color: #000;
+        }
+
+        #result {
+            margin-top: 20px;
+            font-weight: bold;
+            color: green;
+        }
+    </style>
+</head>
+<body>
+    <h1>根据提单抓取集装箱号小程序</h1>
+    <p>目前输入提单号支持船司: EverGreen(EGLV-); MSC(MEDU-) </p>
+    <p>目前上传提单文件支持: Maersk(MAEU-) </p>
+
+    <!-- 输入提单号表单 -->
+    <h2>输入提单号(带船司前缀)</h2>
+    <form method="POST">
+        <input type="text" id="bl_number" name="bl_number" required>
+        <button type="submit">Search</button>
+    </form>
+
+    <!-- 拖拽上传表单 -->
+    <h2>上传提单文件（支持拖拽）</h2>
+    <form id="upload-form" enctype="multipart/form-data">
+        <div id="drop-zone">拖拽文件到这里，或点击选择文件</div>
+        <input type="file" name="file" id="file-input" style="display:none;">
+        <br>
+    </form>
+
+    <div id="result"></div>
+
+    <script>
+        const dropZone = document.getElementById('drop-zone');
+        const fileInput = document.getElementById('file-input');
+        const uploadForm = document.getElementById('upload-form');
+        const resultDiv = document.getElementById('result');
+
+        dropZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropZone.classList.add('dragover');
+        });
+
+        dropZone.addEventListener('dragleave', () => {
+            dropZone.classList.remove('dragover');
+        });
+
+        dropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropZone.classList.remove('dragover');
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                fileInput.files = files;
+                submitForm();
+            }
+        });
+
+        dropZone.addEventListener('click', () => {
+            fileInput.click();
+        });
+
+        fileInput.addEventListener('change', () => {
+            if (fileInput.files.length > 0) {
+                submitForm();
+            }
+        });
+
+        function submitForm() {
+            const formData = new FormData();
+            formData.append('file', fileInput.files[0]);
+
+            fetch('/upload', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => {
+                if (!response.ok) throw new Error("上传失败");
+
+                // 提取内容类型（确定是文本文件）
+                const disposition = response.headers.get("Content-Disposition");
+                const filenameMatch = /filename="?(.+)"?/.exec(disposition);
+                const filename = filenameMatch ? filenameMatch[1] : "container_info.txt";
+
+                return response.blob().then(blob => ({ blob, filename }));
+            })
+            .then(({ blob, filename }) => {
+                const link = document.createElement('a');
+                link.href = URL.createObjectURL(blob);
+                link.download = filename;
+                document.body.appendChild(link);
+                link.click();
+                link.remove();
+            })
+            .catch(error => {
+                resultDiv.textContent = '上传失败: ' + error;
+            });
+        }
+
+        uploadForm.addEventListener('submit', function (e) {
+            e.preventDefault(); // 阻止默认表单提交
+            if (fileInput.files.length > 0) {
+                submitForm();
+            }
+        });
+    </script>
+</body>
+</html>
