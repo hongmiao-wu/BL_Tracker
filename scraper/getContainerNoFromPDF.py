@@ -5,10 +5,9 @@ def extract_container_numbers_from_pdf(pdf_path):
     containers = []
     with pdfplumber.open(pdf_path) as pdf:
         for page in pdf.pages:
-            chars = page.chars  # 每个字符带位置信息
+            chars = page.chars  # each char position
             line_chars = sorted(chars, key=lambda c: (c['top'], c['x0']))
 
-            # 手动拼接成行
             current_line_y = None
             current_line = ""
 
